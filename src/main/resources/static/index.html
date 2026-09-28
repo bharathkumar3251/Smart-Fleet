@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Fleet Maintenance & Tire Telemetry</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Smart Fleet</h2>
+        <button class="nav-btn active" onclick="showModule('vehicles')">1. Vehicles</button>
+        <button class="nav-btn" onclick="showModule('tires')">2. Tires</button>
+        <button class="nav-btn" onclick="showModule('telemetry')">3. Tire Telemetry</button>
+        <button class="nav-btn" onclick="showModule('alerts')">4. Maintenance Alerts</button>
+        <button class="nav-btn" onclick="showModule('contacts')">5. Contact Master</button>
+        <button class="nav-btn" onclick="showModule('products')">6. Product Master</button>
+        <button class="nav-btn" onclick="showModule('procurement')">7. Procurement & Bills</button>
+        <button class="nav-btn" onclick="showModule('sales')">8. Sales & Invoices</button>
+        <button class="nav-btn" onclick="showModule('accounting')">9. Accounting & Ledger</button>
+        <button class="nav-btn" onclick="showModule('budgets')">10. Costing & Budgets</button>
+        <button class="nav-btn" onclick="showModule('reports')">11. Financial Reports</button>
+    </div>
+
+    <div class="content">
+        <div id="alertBanner" class="alert-banner"></div>
+
+        <!-- 1. Vehicle Module -->
+        <div id="vehicles" class="module-section active">
+            <div class="module-header">
+                <h1>Vehicle Management</h1>
+                <p>Add and view fleet transport vehicles</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Add New Vehicle</h3>
+                    <form id="vehicleForm">
+                        <div class="form-group">
+                            <label>Vehicle Number</label>
+                            <input type="text" id="vNumber" placeholder="e.g. TN38AB1234" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle Model</label>
+                            <input type="text" id="vModel" placeholder="e.g. Ashok Leyland 4220" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle Type</label>
+                            <select id="vType">
+                                <option value="HEAVY_TRUCK">HEAVY_TRUCK</option>
+                                <option value="LIGHT_TRUCK">LIGHT_TRUCK</option>
+                                <option value="BUS">BUS</option>
+                                <option value="VAN">VAN</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-submit">Add Vehicle</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>Registered Vehicles</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Number</th><th>Model</th><th>Type</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="vehicleTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Tire Module -->
+        <div id="tires" class="module-section">
+            <div class="module-header">
+                <h1>Tire Management</h1>
+                <p>Assign tires to fleet vehicles and track PSI</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Add New Tire</h3>
+                    <form id="tireForm">
+                        <div class="form-group">
+                            <label>Serial Number</label>
+                            <input type="text" id="tSerial" placeholder="e.g. TYRE1001" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Brand</label>
+                            <input type="text" id="tBrand" placeholder="e.g. Michelin" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Size</label>
+                            <input type="text" id="tSize" placeholder="e.g. 295/80R22.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle</label>
+                            <select id="tVehicleSelect" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Position</label>
+                            <select id="tPosition">
+                                <option value="FRONT_LEFT">FRONT_LEFT</option>
+                                <option value="FRONT_RIGHT">FRONT_RIGHT</option>
+                                <option value="REAR_LEFT_OUTER">REAR_LEFT_OUTER</option>
+                                <option value="REAR_RIGHT_OUTER">REAR_RIGHT_OUTER</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-submit">Add Tire</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>Fleet Tires</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Serial</th><th>Brand</th><th>Vehicle</th><th>Pos</th><th>Current PSI</th></tr>
+                            </thead>
+                            <tbody id="tireTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Tire Telemetry -->
+        <div id="telemetry" class="module-section">
+            <div class="module-header">
+                <h1>Submit Tire Telemetry</h1>
+                <p>Send real-time PSI and Temperature readings. Low PSI (&lt; 28) triggers maintenance alerts.</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Record Reading</h3>
+                    <form id="telemetryForm">
+                        <div class="form-group">
+                            <label>Select Tire</label>
+                            <select id="telemetryTireSelect" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>PSI Value</label>
+                            <input type="number" step="0.1" id="telemetryPsi" placeholder="e.g. 27.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Temperature (&deg;C)</label>
+                            <input type="number" step="0.1" id="telemetryTemp" placeholder="e.g. 38.2" required>
+                        </div>
+                        <button type="submit" class="btn-submit">Submit Telemetry</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Maintenance Alerts -->
+        <div id="alerts" class="module-section">
+            <div class="module-header">
+                <h1>Maintenance Alerts</h1>
+                <p>Automatic ticket creation when PSI falls below 28</p>
+            </div>
+            <div class="card full-width">
+                <h3>Open & Closed Maintenance Tickets</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr><th>Ticket ID</th><th>Vehicle</th><th>Tire Serial</th><th>Reason</th><th>Trigger PSI</th><th>Status</th><th>Created At</th></tr>
+                        </thead>
+                        <tbody id="alertsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Contact Master -->
+        <div id="contacts" class="module-section">
+            <div class="module-header">
+                <h1>Contact Master</h1>
+                <p>Manage vendors and customers</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Add Contact</h3>
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="cName" placeholder="e.g. Michelin Tyres Ltd / Fast Logistics" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Type</label>
+                            <select id="cType">
+                                <option value="VENDOR">VENDOR</option>
+                                <option value="CUSTOMER">CUSTOMER</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="text" id="cPhone" placeholder="e.g. 9876543210">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="cEmail" placeholder="e.g. vendor@example.com">
+                        </div>
+                        <button type="submit" class="btn-submit">Save Contact</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>Contacts Directory</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Name</th><th>Type</th><th>Phone</th><th>Email</th></tr>
+                            </thead>
+                            <tbody id="contactTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Product Master -->
+        <div id="products" class="module-section">
+            <div class="module-header">
+                <h1>Product Master</h1>
+                <p>Manage fleet goods and alignment/transit services</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Add Product</h3>
+                    <form id="productForm">
+                        <div class="form-group">
+                            <label>Product Name</label>
+                            <input type="text" id="pName" placeholder="e.g. All-Terrain Fleet Tire / Alignment Service" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Product Type</label>
+                            <select id="pType">
+                                <option value="GOODS">GOODS</option>
+                                <option value="SERVICE">SERVICE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Unit Price (&#8377;)</label>
+                            <input type="number" step="0.01" id="pPrice" placeholder="e.g. 18500" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <input type="number" step="1" id="pQty" placeholder="e.g. 10" required>
+                        </div>
+                        <button type="submit" class="btn-submit">Save Product</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>Products Catalog</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Name</th><th>Type</th><th>Price</th><th>Qty</th></tr>
+                            </thead>
+                            <tbody id="productTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. Procurement -->
+        <div id="procurement" class="module-section">
+            <div class="module-header">
+                <h1>Procurement, Vendor Bills & Payments</h1>
+                <p>Purchase replacement tires and generate double-entry vendor journal postings</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>1. Create Purchase Order</h3>
+                    <form id="poForm">
+                        <div class="form-group">
+                            <label>Vendor</label>
+                            <select id="poVendorSelect" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Product</label>
+                            <select id="poProductSelect" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <input type="number" id="poQty" placeholder="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Unit Price (&#8377;)</label>
+                            <input type="number" id="poPrice" placeholder="18500" required>
+                        </div>
+                        <button type="submit" class="btn-submit">Create PO</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>Purchase Orders</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>PO ID</th><th>Vendor</th><th>Total</th><th>Status</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="poTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card full-width">
+                    <h3>Vendor Bills & Payment Processing</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Bill ID</th><th>PO ID</th><th>Vendor</th><th>Amount</th><th>Status</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="vendorBillTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. Sales -->
+        <div id="sales" class="module-section">
+            <div class="module-header">
+                <h1>Fleet Service Sales & Customer Payments</h1>
+                <p>Bill clients for transport/alignment services and record bank receipts</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>1. Create Sales Order</h3>
+                    <form id="soForm">
+                        <div class="form-group">
+                            <label>Customer</label>
+                            <select id="soCustomerSelect" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Service / Product</label>
+                            <select id="soProductSelect" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <input type="number" id="soQty" placeholder="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Unit Price (&#8377;)</label>
+                            <input type="number" id="soPrice" placeholder="250000" required>
+                        </div>
+                        <button type="submit" class="btn-submit">Create Sales Order</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>Sales Orders</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>SO ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="soTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card full-width">
+                    <h3>Customer Invoices & Payments</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Invoice ID</th><th>SO ID</th><th>Customer</th><th>Amount</th><th>Status</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="customerInvoiceTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. Accounting -->
+        <div id="accounting" class="module-section">
+            <div class="module-header">
+                <h1>Chart of Accounts & Journal Entries</h1>
+                <p>Enforces strict double-entry balancing (Debit = Credit)</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Chart of Accounts</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Account Name</th><th>Type</th><th>Current Balance</th></tr>
+                            </thead>
+                            <tbody id="accountTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Recent Journal Entries</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Ref</th><th>Description</th><th>Date</th></tr>
+                            </thead>
+                            <tbody id="journalTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10. Costing & Budgets -->
+        <div id="budgets" class="module-section">
+            <div class="module-header">
+                <h1>Analytic Division & Budgeting</h1>
+                <p>Allocate fleet divisional budgets and track real expense variances</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>1. Create Analytic Division</h3>
+                    <form id="analyticForm">
+                        <div class="form-group">
+                            <label>Division Name</label>
+                            <input type="text" id="anName" placeholder="e.g. Heavy Transport Division 2" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" id="anDesc" placeholder="Primary long-haul fleet division">
+                        </div>
+                        <button type="submit" class="btn-submit">Add Division</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>2. Allocate Division Budget</h3>
+                    <form id="budgetForm">
+                        <div class="form-group">
+                            <label>Analytic Division</label>
+                            <select id="budgetAnalyticSelect" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Allocated Budget (&#8377;)</label>
+                            <input type="number" id="budgetAmount" placeholder="1000000" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Period</label>
+                            <input type="text" id="budgetPeriod" placeholder="2026-Q1" required>
+                        </div>
+                        <button type="submit" class="btn-submit">Save Budget</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 11. Reports -->
+        <div id="reports" class="module-section">
+            <div class="module-header">
+                <h1>Financial & Operational Reports</h1>
+                <p>Real database financial reports generated dynamically</p>
+            </div>
+            <div class="card-grid">
+                <div class="card">
+                    <h3>Balance Sheet</h3>
+                    <button class="btn-submit" onclick="loadBalanceSheet()" style="margin-bottom: 12px;">Refresh Balance Sheet</button>
+                    <div id="balanceSheetView"></div>
+                </div>
+                <div class="card">
+                    <h3>Profit & Loss Statement</h3>
+                    <button class="btn-submit" onclick="loadProfitLoss()" style="margin-bottom: 12px;">Refresh P&L</button>
+                    <div id="profitLossView"></div>
+                </div>
+                <div class="card full-width">
+                    <h3>Budget vs Actual Expense Report</h3>
+                    <button class="btn-submit" onclick="loadBudgetReport()" style="margin-bottom: 12px; width: auto;">Refresh Budget Report</button>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Fleet Division</th><th>Allocated Budget</th><th>Actual Expense</th><th>Variance</th></tr>
+                            </thead>
+                            <tbody id="budgetReportTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
